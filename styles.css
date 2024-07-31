@@ -1,16 +1,18 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    max-width: 800px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 20px;
+    padding: 10px;
     background-color: #f0f4f8;
     color: #333;
 }
+
 h1, h2, h3 {
     color: #2c3e50;
-    margin-top: 20px;
+    margin-top: 15px;
     margin-bottom: 10px;
 }
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -18,30 +20,37 @@ table {
     background-color: white;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 }
+
 th, td {
     border: 1px solid #ddd;
-    padding: 12px;
+    padding: 8px;
     text-align: right;
 }
+
 th {
     background-color: #3498db;
     color: white;
 }
+
 button, input, select {
     margin: 5px;
     padding: 8px;
     border: 1px solid #bdc3c7;
     border-radius: 4px;
+    max-width: 100%;
 }
+
 button {
     background-color: #3498db;
     color: white;
     cursor: pointer;
     transition: background-color 0.3s;
 }
+
 button:hover {
     background-color: #2980b9;
 }
+
 #settings {
     display: none;
     margin-top: 20px;
@@ -50,6 +59,7 @@ button:hover {
     background-color: white;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 }
+
 .taskItem {
     display: flex;
     justify-content: space-between;
@@ -58,10 +68,12 @@ button:hover {
     background-color: #ecf0f1;
     border-radius: 4px;
 }
+
 .removeTask {
     color: #e74c3c;
     cursor: pointer;
 }
+
 .progress-bar {
     width: 100%;
     background-color: #ecf0f1;
@@ -70,6 +82,7 @@ button:hover {
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);
     margin-bottom: 10px;
 }
+
 .progress-bar-fill {
     display: block;
     height: 22px;
@@ -77,22 +90,56 @@ button:hover {
     border-radius: 3px;
     transition: width 500ms ease-in-out;
 }
+
 .chart-container {
-    width: 300px;
+    width: 100%;
     height: 300px;
     margin: 10px auto;
 }
+
 .summary-section {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    flex-wrap: wrap;
 }
+
 .summary-child {
-    width: 48%;
+    width: 100%;
     margin-bottom: 20px;
 }
+
 .deleteRow {
     color: red;
     cursor: pointer;
     font-weight: bold;
+}
+
+@media (max-width: 600px) {
+    table {
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 6px;
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+}
+
+@media (min-width: 601px) {
+    body {
+        max-width: 800px;
+        padding: 20px;
+    }
+
+    .summary-section {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .summary-child {
+        width: 48%;
+    }
 }

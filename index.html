@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>מעקב נקודות ילדים משודרג</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <h1>מעקב נקודות ילדים משודרג</h1>
     
     <h2>הוספת נקודות</h2>
-    <select id="childSelect">
-        <option value="נועם">נועם</option>
-        <option value="עמית">עמית</option>
-    </select>
-    <select id="taskSelect"></select>
-    <button id="addPointsButton">הוסף נקודות</button>
+    <div>
+        <select id="childSelect">
+            <option value="נועם">נועם</option>
+            <option value="עמית">עמית</option>
+        </select>
+        <select id="taskSelect"></select>
+        <button id="addPointsButton">הוסף נקודות</button>
+    </div>
 
     <h2>טבלת נקודות</h2>
     <table id="pointsTable">
@@ -29,25 +31,35 @@
                 <th>פעולות</th>
             </tr>
         </thead>
-        <tbody></tbody>
+        <tbody>
+            <!-- תוכן הטבלה יתווסף דינמית על ידי JavaScript -->
+        </tbody>
     </table>
 
     <h2>סיכום</h2>
-    <div id="summarySection" class="summary-section"></div>
+    <div id="summarySection" class="summary-section">
+        <!-- תוכן הסיכום יתווסף דינמית על ידי JavaScript -->
+    </div>
 
     <button id="toggleSettingsButton">הגדרות</button>
 
     <div id="settings">
         <h3>ניהול מטלות</h3>
-        <div id="taskList"></div>
+        <div id="taskList">
+            <!-- רשימת המטלות תתווסף דינמית על ידי JavaScript -->
+        </div>
 
         <h3>הוספת מטלה חדשה</h3>
-        <input type="text" id="newTaskName" placeholder="שם המטלה">
-        <input type="number" id="newTaskPoints" placeholder="מספר נקודות">
-        <button id="addNewTaskButton">הוסף מטלה</button>
+        <div>
+            <input type="text" id="newTaskName" placeholder="שם המטלה">
+            <input type="number" id="newTaskPoints" placeholder="מספר נקודות">
+            <button id="addNewTaskButton">הוסף מטלה</button>
+        </div>
     </div>
 
-    <div id="debug"></div>
+    <div id="debug">
+        <!-- הודעות דיבאג יתווספו כאן על ידי JavaScript -->
+    </div>
 
     <script src="script.js"></script>
 </body>

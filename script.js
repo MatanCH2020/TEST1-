@@ -91,8 +91,8 @@
         summarySection.innerHTML = '';
 
         CHILDREN.forEach(child => {
-            const childTotal = pointsData.filter(entry => entry.child === child)
-                .reduce((sum, entry) => sum + entry.points, 0);
+            const childData = pointsData.filter(entry => entry.child === child);
+            const childTotal = childData.reduce((sum, entry) => sum + entry.points, 0);
             const money = Math.floor(childTotal / 100) * 10;
             const progress = childTotal % 100;
             const percentage = Math.min(progress, 100);
@@ -112,7 +112,7 @@
             `;
             summarySection.appendChild(childSummary);
 
-            updateChart(child, `${child}Chart`);
+            updateChart(child, `${child}Chart`, childData);
         });
 
         debug('Summary updated');
@@ -221,8 +221,7 @@
         }
     }
 
-    function updateChart(child, chartId) {
-        const childData = pointsData.filter(entry => entry.child === child);
+    function updateChart(child, chartId, childData) {
         const taskCounts = {};
         childData.forEach(entry => {
             taskCounts[entry.task] = (taskCounts[entry.task] || 0) + 1;

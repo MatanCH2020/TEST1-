@@ -16,7 +16,10 @@
 
     function debug(message) {
         console.log(message);
-        document.getElementById('debug').textContent += message + '\n';
+        const debugElement = document.getElementById('debug');
+        if (debugElement) {
+            debugElement.textContent += message + '\n';
+        }
     }
 
     function addPoints() {
@@ -39,6 +42,8 @@
 
     function updateTable() {
         const tbody = document.querySelector('#pointsTable tbody');
+        if (!tbody) return;
+        
         tbody.innerHTML = '';
         
         pointsData.forEach((entry, index) => {
@@ -80,6 +85,8 @@
 
     function updateSummary() {
         const summarySection = document.getElementById('summarySection');
+        if (!summarySection) return;
+
         summarySection.innerHTML = '';
 
         CHILDREN.forEach(child => {
@@ -130,6 +137,8 @@
 
     function updateTaskSelect() {
         const taskSelect = document.getElementById('taskSelect');
+        if (!taskSelect) return;
+
         taskSelect.innerHTML = '';
         for (const [task, points] of Object.entries(taskPoints)) {
             const option = document.createElement('option');
@@ -142,6 +151,8 @@
 
     function updateTaskList() {
         const taskList = document.getElementById('taskList');
+        if (!taskList) return;
+
         taskList.innerHTML = '';
         for (const [task, points] of Object.entries(taskPoints)) {
             const taskItem = document.createElement('div');
@@ -168,8 +179,10 @@
 
     function toggleSettings() {
         const settings = document.getElementById('settings');
-        settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
-        debug(`Settings toggled: ${settings.style.display}`);
+        if (settings) {
+            settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
+            debug(`Settings toggled: ${settings.style.display}`);
+        }
     }
 
     function saveData() {
@@ -250,22 +263,22 @@
     }
 
     // Event Listeners
-    document.getElementById('addPointsButton').addEventListener('click', addPoints);
-    document.getElementById('toggleSettingsButton').addEventListener('click', toggleSettings);
-    document.getElementById('addNewTaskButton').addEventListener('click', addNewTask);
-    document.getElementById('pointsTable').addEventListener('click', function(e) {
-        if (e.target.classList.contains('deleteRow')) {
-            confirmDeleteRow(parseInt(e.target.dataset.index));
-        }
-    });
-    document.getElementById('taskList').addEventListener('click', function(e) {
-        if (e.target.classList.contains('removeTask')) {
-            removeTask(e.target.dataset.task);
-        }
-    });
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('addPointsButton').addEventListener('click', addPoints);
+        document.getElementById('toggleSettingsButton').addEventListener('click', toggleSettings);
+        document.getElementById('addNewTaskButton').addEventListener('click', addNewTask);
+        document.getElementById('pointsTable').addEventListener('click', function(e) {
+            if (e.target.classList.contains('deleteRow')) {
+                confirmDeleteRow(parseInt(e.target.dataset.index));
+            }
+        });
+        document.getElementById('taskList').addEventListener('click', function(e) {
+            if (e.target.classList.contains('removeTask')) {
+                removeTask(e.target.dataset.task);
+            }
+        });
 
-    // Initialize
-    window.addEventListener('load', function() {
+        // Initialize
         debug('Page loaded');
         loadData();
         updateTaskSelect();

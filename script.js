@@ -13,6 +13,7 @@
         "קיפול וסידור כביסה": 7,
         "התנהגות טובה בבית הספר": 15
     };
+    let charts = {};
 
     function debug(message) {
         console.log(message);
@@ -204,7 +205,6 @@
             if (savedPointsData) {
                 pointsData = JSON.parse(savedPointsData);
                 updateTable();
-                updateSummary();
                 debug('Points data loaded from localStorage');
             }
             
@@ -214,6 +214,7 @@
             }
             updateTaskSelect();
             updateTaskList();
+            updateSummary();
         } catch (error) {
             console.error('Failed to load data:', error);
             debug('Failed to load data from localStorage');
@@ -244,13 +245,11 @@
             return;
         }
 
-        // Destroy the existing chart if it exists
-        if (window[chartId] && typeof window[chartId].destroy === 'function') {
-            window[chartId].destroy();
+        if (charts[chartId]) {
+            charts[chartId].destroy();
         }
 
-        // Create a new chart
-        window[chartId] = new Chart(ctx, {
+        charts[chartId] = new Chart(ctx, {
             type: 'pie',
             data: data,
             options: {
@@ -270,8 +269,7 @@
         debug(`Chart updated for ${child}`);
     }
 
-    // Event Listeners
-    document.addEventListener('DOMContentLoaded', function() {
+    function initializeApp() {
         const addPointsButton = document.getElementById('addPointsButton');
         const toggleSettingsButton = document.getElementById('toggleSettingsButton');
         const addNewTaskButton = document.getElementById('addNewTaskButton');
@@ -296,12 +294,14 @@
             });
         }
 
-        // Initialize
-        debug('Page loaded');
         loadData();
-        updateTaskSelect();
-        updateTaskList();
-        updateSummary();
-        debug('Initialization complete');
-    });
+        debug('App initialized');
+    }
+
+    // Initialize the app when the DOM is fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+        initializeApp();
+    }
 })();

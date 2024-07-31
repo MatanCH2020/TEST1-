@@ -233,4 +233,44 @@
             type: 'pie',
             data: data,
             options: {
-                responsive: true
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: `התפלגות משימות - ${child}`
+                    }
+                }
+            }
+        });
+        debug(`Chart updated for ${child}`);
+    }
+
+    // Event Listeners
+    document.getElementById('addPointsButton').addEventListener('click', addPoints);
+    document.getElementById('toggleSettingsButton').addEventListener('click', toggleSettings);
+    document.getElementById('addNewTaskButton').addEventListener('click', addNewTask);
+    document.getElementById('pointsTable').addEventListener('click', function(e) {
+        if (e.target.classList.contains('deleteRow')) {
+            confirmDeleteRow(parseInt(e.target.dataset.index));
+        }
+    });
+    document.getElementById('taskList').addEventListener('click', function(e) {
+        if (e.target.classList.contains('removeTask')) {
+            removeTask(e.target.dataset.task);
+        }
+    });
+
+    // Initialize
+    window.addEventListener('load', function() {
+        debug('Page loaded');
+        loadData();
+        updateTaskSelect();
+        updateTaskList();
+        updateSummary();
+        debug('Initialization complete');
+    });
+})();

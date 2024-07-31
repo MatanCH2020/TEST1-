@@ -238,10 +238,18 @@
             }]
         };
 
-        const ctx = document.getElementById(chartId).getContext('2d');
-        if (window[chartId]) {
+        const ctx = document.getElementById(chartId);
+        if (!ctx) {
+            console.error(`Canvas element with id ${chartId} not found`);
+            return;
+        }
+
+        // Destroy the existing chart if it exists
+        if (window[chartId] && typeof window[chartId].destroy === 'function') {
             window[chartId].destroy();
         }
+
+        // Create a new chart
         window[chartId] = new Chart(ctx, {
             type: 'pie',
             data: data,
@@ -264,19 +272,29 @@
 
     // Event Listeners
     document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('addPointsButton').addEventListener('click', addPoints);
-        document.getElementById('toggleSettingsButton').addEventListener('click', toggleSettings);
-        document.getElementById('addNewTaskButton').addEventListener('click', addNewTask);
-        document.getElementById('pointsTable').addEventListener('click', function(e) {
-            if (e.target.classList.contains('deleteRow')) {
-                confirmDeleteRow(parseInt(e.target.dataset.index));
-            }
-        });
-        document.getElementById('taskList').addEventListener('click', function(e) {
-            if (e.target.classList.contains('removeTask')) {
-                removeTask(e.target.dataset.task);
-            }
-        });
+        const addPointsButton = document.getElementById('addPointsButton');
+        const toggleSettingsButton = document.getElementById('toggleSettingsButton');
+        const addNewTaskButton = document.getElementById('addNewTaskButton');
+        const pointsTable = document.getElementById('pointsTable');
+        const taskList = document.getElementById('taskList');
+
+        if (addPointsButton) addPointsButton.addEventListener('click', addPoints);
+        if (toggleSettingsButton) toggleSettingsButton.addEventListener('click', toggleSettings);
+        if (addNewTaskButton) addNewTaskButton.addEventListener('click', addNewTask);
+        if (pointsTable) {
+            pointsTable.addEventListener('click', function(e) {
+                if (e.target.classList.contains('deleteRow')) {
+                    confirmDeleteRow(parseInt(e.target.dataset.index));
+                }
+            });
+        }
+        if (taskList) {
+            taskList.addEventListener('click', function(e) {
+                if (e.target.classList.contains('removeTask')) {
+                    removeTask(e.target.dataset.task);
+                }
+            });
+        }
 
         // Initialize
         debug('Page loaded');

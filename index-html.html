@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מעקב נקודות ילדים משודרג</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>מעקב נקודות ילדים משודרג</h1>
+    
+    <h2>הוספת נקודות</h2>
+    <select id="childSelect">
+        <option value="נועם">נועם</option>
+        <option value="עמית">עמית</option>
+    </select>
+    <select id="taskSelect"></select>
+    <button id="addPointsButton">הוסף נקודות</button>
+
+    <h2>טבלת נקודות</h2>
+    <table id="pointsTable">
+        <thead>
+            <tr>
+                <th>ילד</th>
+                <th>משימה</th>
+                <th>נקודות</th>
+                <th>תאריך</th>
+                <th>פעולות</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>סיכום</h2>
+    <div id="summarySection" class="summary-section"></div>
+
+    <button id="toggleSettingsButton">הגדרות</button>
+
+    <div id="settings">
+        <h3>ניהול מטלות</h3>
+        <div id="taskList"></div>
+
+        <h3>הוספת מטלה חדשה</h3>
+        <input type="text" id="newTaskName" placeholder="שם המטלה">
+        <input type="number" id="newTaskPoints" placeholder="מספר נקודות">
+        <button id="addNewTaskButton">הוסף מטלה</button>
+    </div>
+
+    <div id="debug"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

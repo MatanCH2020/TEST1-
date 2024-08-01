@@ -9,6 +9,10 @@ const firebaseConfig = {
   measurementId: "G-NPZRCTV5WS"
 };
 
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
 // אתחול Firebase
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();

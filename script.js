@@ -98,7 +98,7 @@ function updateSummary() {
             <h3>${child}</h3>
             <p><span id="${child}Total">${childTotal}</span> נקודות (<span id="${child}Money">${money}</span> ₪)</p>
             <div class="progress-bar">
-                <span id="${child}Progress" class="progress-bar-fill" style="width: ${percentage}%;"></span>
+                <span class="progress-bar-fill" style="width: ${percentage}%;"></span>
             </div>
             <p>התקדמות לפרס הבא: <span id="${child}ProgressText">${percentage}</span>%</p>
             <div class="chart-container">
@@ -183,8 +183,12 @@ function toggleSettings() {
 
 function saveData() {
     try {
-        localStorage.setItem('pointsData', JSON.stringify(pointsData));
-        localStorage.setItem('taskPoints', JSON.stringify(taskPoints));
+        const dataToSave = {
+            pointsData: pointsData,
+            taskPoints: taskPoints,
+            lastUpdated: new Date().getTime()
+        };
+        localStorage.setItem('childrenPointsData', JSON.stringify(dataToSave));
         debug('Data saved to localStorage');
     } catch (error) {
         console.error('Failed to save data:', error);
@@ -194,22 +198,18 @@ function saveData() {
 
 function loadData() {
     try {
-        const savedPointsData = localStorage.getItem('pointsData');
-        const savedTaskPoints = localStorage.getItem('taskPoints');
+        const savedData = localStorage.getItem('childrenPointsData');
         
-        if (savedPointsData) {
-            pointsData = JSON.parse(savedPointsData);
+        if (savedData) {
+            const parsedData = JSON.parse(savedData);
+            pointsData = parsedData.pointsData || [];
+            taskPoints = parsedData.taskPoints || {};
             updateTable();
-            debug('Points data loaded from localStorage');
+            updateTaskSelect();
+            updateTaskList();
+            updateSummary();
+            debug('Data loaded from localStorage');
         }
-        
-        if (savedTaskPoints) {
-            taskPoints = JSON.parse(savedTaskPoints);
-            debug('Task points loaded from localStorage');
-        }
-        updateTaskSelect();
-        updateTaskList();
-        updateSummary();
     } catch (error) {
         console.error('Failed to load data:', error);
         debug('Failed to load data from localStorage');
@@ -287,6 +287,14 @@ function initializeApp() {
             }
         });
     }
+
+    // הוסף האזנה לשינויים במקרה של סנכרון בין טאבים
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'childrenPointsData') {
+            loadData();
+            debug('Data synchronized from another tab');
+        }
+    });
 
     loadData();
     debug('App initialized');

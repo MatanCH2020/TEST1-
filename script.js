@@ -13,9 +13,40 @@ let taskPoints = {
     "התנהגות טובה בבית הספר": 15
 };
 let charts = {};
+let currentPage = 1;
+const ROWS_PER_PAGE = 10;
 
-function debug(message) {
-    console.log(message);
+function initApp() {
+    loadData();
+    updateTaskSelect();
+    updateTaskList();
+    updateTable();
+    updateSummary();
+    setupEventListeners();
+}
+
+function setupEventListeners() {
+    document.getElementById('addPointsButton').addEventListener('click', addPoints);
+    document.getElementById('addNewTaskButton').addEventListener('click', addNewTask);
+    document.getElementById('showMoreButton').addEventListener('click', showMoreRows);
+    document.getElementById('navPoints').addEventListener('click', () => switchSection('pointsSection'));
+    document.getElementById('navSummary').addEventListener('click', () => switchSection('summarySection'));
+    document.getElementById('navSettings').addEventListener('click', () => switchSection('settingsSection'));
+    document.getElementById('pointsTable').addEventListener('click', handleTableClick);
+    document.getElementById('taskList').addEventListener('click', handleTaskListClick);
+}
+
+function switchSection(sectionId) {
+    const sections = ['pointsSection', 'summarySection', 'settingsSection'];
+    sections.forEach(id => {
+        document.getElementById(id).classList.toggle('hidden', id !== sectionId);
+    });
+    document.querySelectorAll('.nav-button').forEach(button => {
+        button.classList.toggle('active', button.id === 'nav' + sectionId.replace('Section', ''));
+    });
+    if (sectionId === 'summarySection') {
+        updateSummary(); // Refresh summary when switching to it
+    }
 }
 
 function addPoints() {
@@ -29,61 +60,57 @@ function addPoints() {
         return;
     }
 
-    pointsData.push({ child, task, points, date });
+    pointsData.unshift({ child, task, points, date });
     updateTable();
     updateSummary();
     saveData();
-    debug(`Added points: ${child}, ${task}, ${points}, ${date}`);
 }
 
 function updateTable() {
     const tbody = document.querySelector('#pointsTable tbody');
-    if (!tbody) return;
-    
     tbody.innerHTML = '';
     
-    pointsData.forEach((entry, index) => {
-        const row = document.createElement('tr');
+    const start = (currentPage - 1) * ROWS_PER_PAGE;
+    const end = start + ROWS_PER_PAGE;
+    const pageData = pointsData.slice(start, end);
+    
+    pageData.forEach((entry, index) => {
+        const row = tbody.insertRow();
         row.innerHTML = `
-            <td>${escapeHtml(entry.child)}</td>
-            <td>${escapeHtml(entry.task)}</td>
+            <td>${entry.child}</td>
+            <td>${entry.task}</td>
             <td>${entry.points}</td>
             <td>${entry.date}</td>
-            <td><button class="deleteRow" data-index="${index}">❌</button></td>
+            <td><button class="deleteRow" data-index="${start + index}">❌</button></td>
         `;
-        tbody.appendChild(row);
     });
-    debug('Table updated');
+
+    document.getElementById('showMoreButton').style.display = 
+        pointsData.length > end ? 'block' : 'none';
 }
 
-function escapeHtml(unsafe) {
-    return unsafe
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
+function showMoreRows() {
+    currentPage++;
+    updateTable();
 }
 
-function confirmDeleteRow(index) {
-    if (confirm('האם אתה בטוח שברצונך למחוק שורה זו?')) {
-        deleteRow(index);
+function handleTableClick(event) {
+    if (event.target.classList.contains('deleteRow')) {
+        const index = parseInt(event.target.dataset.index);
+        if (confirm('האם אתה בטוח שברצונך למחוק שורה זו?')) {
+            pointsData.splice(index, 1);
+            updateTable();
+            updateSummary();
+            saveData();
+        }
     }
 }
 
-function deleteRow(index) {
-    pointsData.splice(index, 1);
-    updateTable();
-    updateSummary();
-    saveData();
-    debug(`Row deleted at index ${index}`);
-}
-
 function updateSummary() {
-    const summarySection = document.getElementById('summarySection');
-    if (!summarySection) return;
-
-    summarySection.innerHTML = '';
+    const summaryCards = document.querySelector('.summary-cards');
+    const chartsContainer = document.querySelector('.charts-container');
+    summaryCards.innerHTML = '';
+    chartsContainer.innerHTML = '';
 
     CHILDREN.forEach(child => {
         const childData = pointsData.filter(entry => entry.child === child);
@@ -92,128 +119,25 @@ function updateSummary() {
         const progress = childTotal % 100;
         const percentage = Math.min(progress, 100);
 
-        const childSummary = document.createElement('div');
-        childSummary.className = 'summary-child';
-        childSummary.innerHTML = `
+        const card = document.createElement('div');
+        card.className = 'summary-card';
+        card.innerHTML = `
             <h3>${child}</h3>
-            <p><span id="${child}Total">${childTotal}</span> נקודות (<span id="${child}Money">${money}</span> ₪)</p>
+            <p>${childTotal} נקודות (${money} ₪)</p>
             <div class="progress-bar">
-                <span class="progress-bar-fill" style="width: ${percentage}%;"></span>
+                <div class="progress-bar-fill" style="width: ${percentage}%;"></div>
             </div>
-            <p>התקדמות לפרס הבא: <span id="${child}ProgressText">${percentage}</span>%</p>
-            <div class="chart-container">
-                <canvas id="${child}Chart"></canvas>
-            </div>
+            <p>התקדמות לפרס הבא: ${percentage}%</p>
         `;
-        summarySection.appendChild(childSummary);
+        summaryCards.appendChild(card);
+
+        const chartContainer = document.createElement('div');
+        chartContainer.className = 'chart-container';
+        chartContainer.innerHTML = `<canvas id="${child}Chart"></canvas>`;
+        chartsContainer.appendChild(chartContainer);
 
         updateChart(child, `${child}Chart`, childData);
     });
-
-    debug('Summary updated');
-}
-
-function addNewTask() {
-    const newTaskName = document.getElementById('newTaskName').value.trim();
-    const newTaskPoints = parseInt(document.getElementById('newTaskPoints').value);
-
-    if (newTaskName && !isNaN(newTaskPoints) && newTaskPoints > 0) {
-        taskPoints[newTaskName] = newTaskPoints;
-        updateTaskSelect();
-        updateTaskList();
-        document.getElementById('newTaskName').value = '';
-        document.getElementById('newTaskPoints').value = '';
-        alert('המטלה החדשה נוספה בהצלחה!');
-        saveData();
-        debug(`New task added: ${newTaskName}, ${newTaskPoints} points`);
-    } else {
-        alert('אנא הזן שם מטלה ומספר נקודות חיובי.');
-    }
-}
-
-function updateTaskSelect() {
-    const taskSelect = document.getElementById('taskSelect');
-    if (!taskSelect) return;
-
-    taskSelect.innerHTML = '';
-    for (const [task, points] of Object.entries(taskPoints)) {
-        const option = document.createElement('option');
-        option.value = task;
-        option.textContent = `${task} (${points} נקודות)`;
-        taskSelect.appendChild(option);
-    }
-    debug('Task select updated');
-}
-
-function updateTaskList() {
-    const taskList = document.getElementById('taskList');
-    if (!taskList) return;
-
-    taskList.innerHTML = '';
-    for (const [task, points] of Object.entries(taskPoints)) {
-        const taskItem = document.createElement('div');
-        taskItem.className = 'taskItem';
-        taskItem.innerHTML = `
-            <span>${escapeHtml(task)} (${points} נקודות)</span>
-            <button class="removeTask" data-task="${escapeHtml(task)}">❌</button>
-        `;
-        taskList.appendChild(taskItem);
-    }
-    debug('Task list updated');
-}
-
-function removeTask(task) {
-    if (confirm(`האם אתה בטוח שברצונך להסיר את המטלה "${task}"?`)) {
-        delete taskPoints[task];
-        updateTaskSelect();
-        updateTaskList();
-        alert('המטלה הוסרה בהצלחה!');
-        saveData();
-        debug(`Task removed: ${task}`);
-    }
-}
-
-function toggleSettings() {
-    const settings = document.getElementById('settings');
-    if (settings) {
-        settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
-        debug(`Settings toggled: ${settings.style.display}`);
-    }
-}
-
-function saveData() {
-    try {
-        const dataToSave = {
-            pointsData: pointsData,
-            taskPoints: taskPoints,
-            lastUpdated: new Date().getTime()
-        };
-        localStorage.setItem('childrenPointsData', JSON.stringify(dataToSave));
-        debug('Data saved to localStorage');
-    } catch (error) {
-        console.error('Failed to save data:', error);
-        debug('Failed to save data to localStorage');
-    }
-}
-
-function loadData() {
-    try {
-        const savedData = localStorage.getItem('childrenPointsData');
-        
-        if (savedData) {
-            const parsedData = JSON.parse(savedData);
-            pointsData = parsedData.pointsData || [];
-            taskPoints = parsedData.taskPoints || {};
-            updateTable();
-            updateTaskSelect();
-            updateTaskList();
-            updateSummary();
-            debug('Data loaded from localStorage');
-        }
-    } catch (error) {
-        console.error('Failed to load data:', error);
-        debug('Failed to load data from localStorage');
-    }
 }
 
 function updateChart(child, chartId, childData) {
@@ -222,30 +146,23 @@ function updateChart(child, chartId, childData) {
         taskCounts[entry.task] = (taskCounts[entry.task] || 0) + 1;
     });
 
-    const data = {
-        labels: Object.keys(taskCounts),
-        datasets: [{
-            data: Object.values(taskCounts),
-            backgroundColor: [
-                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
-            ]
-        }]
-    };
-
-    const ctx = document.getElementById(chartId);
-    if (!ctx) {
-        console.error(`Canvas element with id ${chartId} not found`);
-        return;
-    }
-
+    const ctx = document.getElementById(chartId).getContext('2d');
     if (charts[chartId]) {
         charts[chartId].destroy();
     }
 
     charts[chartId] = new Chart(ctx, {
         type: 'pie',
-        data: data,
+        data: {
+            labels: Object.keys(taskCounts),
+            datasets: [{
+                data: Object.values(taskCounts),
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                    '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
+                ]
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -260,49 +177,78 @@ function updateChart(child, chartId, childData) {
             }
         }
     });
-    debug(`Chart updated for ${child}`);
 }
 
-function initializeApp() {
-    const addPointsButton = document.getElementById('addPointsButton');
-    const toggleSettingsButton = document.getElementById('toggleSettingsButton');
-    const addNewTaskButton = document.getElementById('addNewTaskButton');
-    const pointsTable = document.getElementById('pointsTable');
+function addNewTask() {
+    const newTaskName = document.getElementById('newTaskName').value.trim();
+    const newTaskPoints = parseInt(document.getElementById('newTaskPoints').value);
+
+    if (newTaskName && !isNaN(newTaskPoints) && newTaskPoints > 0) {
+        taskPoints[newTaskName] = newTaskPoints;
+        updateTaskSelect();
+        updateTaskList();
+        document.getElementById('newTaskName').value = '';
+        document.getElementById('newTaskPoints').value = '';
+        alert('המטלה החדשה נוספה בהצלחה!');
+        saveData();
+    } else {
+        alert('אנא הזן שם מטלה ומספר נקודות חיובי.');
+    }
+}
+
+function updateTaskSelect() {
+    const taskSelect = document.getElementById('taskSelect');
+    taskSelect.innerHTML = '';
+    for (const [task, points] of Object.entries(taskPoints)) {
+        const option = document.createElement('option');
+        option.value = task;
+        option.textContent = `${task} (${points} נקודות)`;
+        taskSelect.appendChild(option);
+    }
+}
+
+function updateTaskList() {
     const taskList = document.getElementById('taskList');
-
-    if (addPointsButton) addPointsButton.addEventListener('click', addPoints);
-    if (toggleSettingsButton) toggleSettingsButton.addEventListener('click', toggleSettings);
-    if (addNewTaskButton) addNewTaskButton.addEventListener('click', addNewTask);
-    if (pointsTable) {
-        pointsTable.addEventListener('click', function(e) {
-            if (e.target.classList.contains('deleteRow')) {
-                confirmDeleteRow(parseInt(e.target.dataset.index));
-            }
-        });
+    taskList.innerHTML = '';
+    for (const [task, points] of Object.entries(taskPoints)) {
+        const taskItem = document.createElement('div');
+        taskItem.className = 'taskItem';
+        taskItem.innerHTML = `
+            <span>${task} (${points} נקודות)</span>
+            <button class="removeTask" data-task="${task}">❌</button>
+        `;
+        taskList.appendChild(taskItem);
     }
-    if (taskList) {
-        taskList.addEventListener('click', function(e) {
-            if (e.target.classList.contains('removeTask')) {
-                removeTask(e.target.dataset.task);
-            }
-        });
-    }
+}
 
-    // הוסף האזנה לשינויים במקרה של סנכרון בין טאבים
-    window.addEventListener('storage', function(e) {
-        if (e.key === 'childrenPointsData') {
-            loadData();
-            debug('Data synchronized from another tab');
+function handleTaskListClick(event) {
+    if (event.target.classList.contains('removeTask')) {
+        const task = event.target.dataset.task;
+        if (confirm(`האם אתה בטוח שברצונך להסיר את המטלה "${task}"?`)) {
+            delete taskPoints[task];
+            updateTaskSelect();
+            updateTaskList();
+            saveData();
         }
-    });
-
-    loadData();
-    debug('App initialized');
+    }
 }
 
-// Initialize the app when the DOM is fully loaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-    initializeApp();
+function saveData() {
+    localStorage.setItem('pointsData', JSON.stringify(pointsData));
+    localStorage.setItem('taskPoints', JSON.stringify(taskPoints));
 }
+
+function loadData() {
+    const savedPointsData = localStorage.getItem('pointsData');
+    const savedTaskPoints = localStorage.getItem('taskPoints');
+    
+    if (savedPointsData) {
+        pointsData = JSON.parse(savedPointsData);
+    }
+    
+    if (savedTaskPoints) {
+        taskPoints = JSON.parse(savedTaskPoints);
+    }
+}
+
+initApp();

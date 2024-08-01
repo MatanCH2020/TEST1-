@@ -17,19 +17,8 @@ let currentPage = 1;
 const ROWS_PER_PAGE = 10;
 
 function initApp() {
-    showLoading();
-    try {
-        loadData();
-        updateTaskSelect();
-        updateTaskList();
-        updateTable();
-        updateSummary();
-        setupEventListeners();
-    } catch (error) {
-        showError("שגיאה בטעינת הנתונים: " + error.message);
-    } finally {
-        hideLoading();
-    }
+    loadData();
+    setupEventListeners();
 }
 
 function setupEventListeners() {
@@ -52,32 +41,25 @@ function switchSection(sectionId) {
         button.classList.toggle('active', button.id === 'nav' + sectionId.replace('Section', ''));
     });
     if (sectionId === 'summarySection') {
-        updateSummary(); // Refresh summary when switching to it
+        updateSummary();
     }
 }
 
 function addPoints() {
-    showLoading();
-    try {
-        const child = document.getElementById('childSelect').value;
-        const task = document.getElementById('taskSelect').value;
-        const points = taskPoints[task];
-        const date = new Date().toISOString().split('T')[0];
+    const child = document.getElementById('childSelect').value;
+    const task = document.getElementById('taskSelect').value;
+    const points = taskPoints[task];
+    const date = new Date().toISOString().split('T')[0];
 
-        if (!child || !task || isNaN(points) || points <= 0) {
-            showError('אנא בחר ילד ומשימה תקינים.');
-            return;
-        }
-
-        pointsData.unshift({ child, task, points, date });
-        updateTable();
-        updateSummary();
-        saveData();
-    } catch (error) {
-        showError("שגיאה בהוספת נקודות: " + error.message);
-    } finally {
-        hideLoading();
+    if (!child || !task || isNaN(points) || points <= 0) {
+        alert('אנא בחר ילד ומשימה תקינים.');
+        return;
     }
+
+    pointsData.unshift({ child, task, points, date });
+    updateTable();
+    updateSummary();
+    saveData();
 }
 
 function updateTable() {
@@ -194,26 +176,19 @@ function updateChart(child, chartId, childData) {
 }
 
 function addNewTask() {
-    showLoading();
-    try {
-        const newTaskName = document.getElementById('newTaskName').value.trim();
-        const newTaskPoints = parseInt(document.getElementById('newTaskPoints').value);
+    const newTaskName = document.getElementById('newTaskName').value.trim();
+    const newTaskPoints = parseInt(document.getElementById('newTaskPoints').value);
 
-        if (newTaskName && !isNaN(newTaskPoints) && newTaskPoints > 0) {
-            taskPoints[newTaskName] = newTaskPoints;
-            updateTaskSelect();
-            updateTaskList();
-            document.getElementById('newTaskName').value = '';
-            document.getElementById('newTaskPoints').value = '';
-            alert('המטלה החדשה נוספה בהצלחה!');
-            saveData();
-        } else {
-            showError('אנא הזן שם מטלה ומספר נקודות חיובי.');
-        }
-    } catch (error) {
-        showError("שגיאה בהוספת מטלה חדשה: " + error.message);
-    } finally {
-        hideLoading();
+    if (newTaskName && !isNaN(newTaskPoints) && newTaskPoints > 0) {
+        taskPoints[newTaskName] = newTaskPoints;
+        updateTaskSelect();
+        updateTaskList();
+        document.getElementById('newTaskName').value = '';
+        document.getElementById('newTaskPoints').value = '';
+        alert('המטלה החדשה נוספה בהצלחה!');
+        saveData();
+    } else {
+        alert('אנא הזן שם מטלה ומספר נקודות חיובי.');
     }
 }
 
@@ -255,51 +230,30 @@ function handleTaskListClick(event) {
 }
 
 function saveData() {
-    showLoading();
-    try {
-        localStorage.setItem('pointsData', JSON.stringify(pointsData));
-        localStorage.setItem('taskPoints', JSON.stringify(taskPoints));
-    } catch (error) {
-        showError("שגיאה בשמירת הנתונים: " + error.message);
-    } finally {
-        hideLoading();
-    }
+    fetch('http://localhost:3000/data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pointsData, taskPoints }),
+    })
+    .then(response => response.json())
+    .then(data => console.log('Data saved successfully:', data))
+    .catch((error) => console.error('Error saving data:', error));
 }
 
 function loadData() {
-    showLoading();
-    try {
-        const savedPointsData = localStorage.getItem('pointsData');
-        const savedTaskPoints = localStorage.getItem('taskPoints');
-        
-        if (savedPointsData) {
-            pointsData = JSON.parse(savedPointsData);
-        }
-        
-        if (savedTaskPoints) {
-            taskPoints = JSON.parse(savedTaskPoints);
-        }
-    } catch (error) {
-        showError("שגיאה בטעינת הנתונים: " + error.message);
-    } finally {
-        hideLoading();
-    }
-}
-
-function showLoading() {
-    // הצג אינדיקטור טעינה (למשל, ספינר או הודעה)
-    console.log("טוען נתונים...");
-}
-
-function hideLoading() {
-    // הסתר אינדיקטור טעינה
-    console.log("טעינה הושלמה.");
-}
-
-function showError(message) {
-    // הצג הודעת שגיאה למשתמש
-    console.error("שגיאה: " + message);
-    alert("אירעה שגיאה: " + message);
+    fetch('http://localhost:3000/data')
+    .then(response => response.json())
+    .then(data => {
+        if (data.pointsData) pointsData = data.pointsData;
+        if (data.taskPoints) taskPoints = data.taskPoints;
+        updateTable();
+        updateSummary();
+        updateTaskSelect();
+        updateTaskList();
+    })
+    .catch((error) => console.error('Error loading data:', error));
 }
 
 initApp();

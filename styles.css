@@ -114,25 +114,6 @@ button:hover {
     font-weight: bold;
 }
 
-@media (max-width: 600px) {
-    table {
-        font-size: 14px;
-    }
-
-    th, td {
-        padding: 6px;
-    }
-
-    .chart-container {
-        height: 250px;
-    }
-}
-
-@media (min-width: 601px) {
-    body {
-        max-width: 800px;
-        padding: 20px;
-    }
 
     .summary-section {
         flex-direction: row;

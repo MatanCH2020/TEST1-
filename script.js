@@ -1,3 +1,18 @@
+// תצורת Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyAFrlFbwC4O1CDafO1eRiXk5qm-ETirW2Q",
+  authDomain: "test1-fbcd6.firebaseapp.com",
+  projectId: "test1-fbcd6",
+  storageBucket: "test1-fbcd6.appspot.com",
+  messagingSenderId: "17432404849",
+  appId: "1:17432404849:web:96a747267237d5de878cd0",
+  measurementId: "G-NPZRCTV5WS"
+};
+
+// אתחול Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
 const CHILDREN = ['נועם', 'עמית'];
 let pointsData = [];
 let taskPoints = {
@@ -230,30 +245,43 @@ function handleTaskListClick(event) {
 }
 
 function saveData() {
-    fetch('http://localhost:3000/data', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ pointsData, taskPoints }),
+    database.ref('data').set({
+        pointsData: pointsData,
+        taskPoints: taskPoints
     })
-    .then(response => response.json())
-    .then(data => console.log('Data saved successfully:', data))
+    .then(() => console.log('Data saved successfully'))
     .catch((error) => console.error('Error saving data:', error));
 }
 
 function loadData() {
-    fetch('http://localhost:3000/data')
-    .then(response => response.json())
-    .then(data => {
-        if (data.pointsData) pointsData = data.pointsData;
-        if (data.taskPoints) taskPoints = data.taskPoints;
+    database.ref('data').once('value')
+    .then((snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            pointsData = data.pointsData || [];
+            taskPoints = data.taskPoints || taskPoints;
+            updateTable();
+            updateSummary();
+            updateTaskSelect();
+            updateTaskList();
+            console.log('Data loaded successfully');
+        }
+    })
+    .catch((error) => console.error('Error loading data:', error));
+}
+
+// הוסף האזנה לשינויים בזמן אמת
+database.ref('data').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        pointsData = data.pointsData || [];
+        taskPoints = data.taskPoints || taskPoints;
         updateTable();
         updateSummary();
         updateTaskSelect();
         updateTaskList();
-    })
-    .catch((error) => console.error('Error loading data:', error));
-}
+        console.log('Data updated in real-time');
+    }
+});
 
 initApp();

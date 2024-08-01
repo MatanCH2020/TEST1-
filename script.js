@@ -1,4 +1,3 @@
-// תצורת Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyAFrlFbwC4O1CDafO1eRiXk5qm-ETirW2Q",
   authDomain: "test1-fbcd6.firebaseapp.com",
